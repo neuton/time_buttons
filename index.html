@@ -113,9 +113,10 @@
         function updateLogDisplay() {
             const logContainer = document.getElementById('log-container');
             logContainer.innerHTML = '';
-            log.forEach(entry => {
+            log.forEach((entry, index) => {
                 const logEntry = document.createElement('div');
-                logEntry.textContent = toLogString(entry.timestamp, entry.direction, entry.type) + '\n';
+                logEntry.textContent = (`${index}; `
+                    + toLogString(entry.timestamp, entry.direction, entry.type) + '\n');
                 logContainer.appendChild(logEntry);
             });
         }
