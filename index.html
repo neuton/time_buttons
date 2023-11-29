@@ -115,7 +115,7 @@
             logContainer.innerHTML = '';
             log.forEach((entry, index) => {
                 const logEntry = document.createElement('div');
-                logEntry.textContent = (`${index}; `
+                logEntry.textContent = (`${index + 1}; `
                     + toLogString(entry.timestamp, entry.direction, entry.type) + '\n');
                 logContainer.appendChild(logEntry);
             });
