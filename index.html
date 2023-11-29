@@ -11,18 +11,29 @@
             align-items: center;
         }
         .button {
+            min-width: 64px;
             font-size: 16px;
-            padding: 10px 20px;
+            padding: 10px 10px;
+            margin: 10px;
+        }
+        .input {
+            font-size: 16px;
+            padding: 10px 10px;
             margin: 10px;
         }
         #copy-button {
             font-size: 16px;
-            padding: 10px 20px;
+            padding: 10px 10px;
             margin: 10px;
         }
         #clear-button {
             font-size: 16px;
-            margin: 10px;
+            margin: 5px;
+            background-color: #f88;
+        }
+        #cancel-button {
+            font-size: 16px;
+            margin: 5px;
             background-color: #f88;
         }
         #log-container {
@@ -30,35 +41,41 @@
             font-size: 14px;
             padding: 10px 10px;
             margin: 10px;
-            max-width: 260px;
+            max-width: 265px;
             border-style: solid;
         }
     </style>
 </head>
 <body>
     <div class="button-row">
+        <input class="input" type="text" name="type_1" value="Type_1" size="11"></input>
         <button class="button">Up</button>
         <button class="button">Down</button>
-        <span>Type 1</span>
     </div>
     <div class="button-row">
+        <input class="input" type="text" name="type_2" value="Type_2" size="11"></input>
         <button class="button">Up</button>
         <button class="button">Down</button>
-        <span>Type 2</span>
     </div>
     <div class="button-row">
+        <input class="input" type="text" name="type_3" value="Type_3" size="11"></input>
         <button class="button">Up</button>
         <button class="button">Down</button>
-        <span>Type 3</span>
     </div>
     <div class="button-row">
+        <input class="input" type="text" name="type_4" value="Type_4" size="11"></input>
         <button class="button">Up</button>
         <button class="button">Down</button>
-        <span>Type 4</span>
+    </div>
+    <div class="button-row">
+        <input class="input" type="text" name="type_5" value="Type_5" size="11"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
     </div>
     <div id="log-container"></div>
     <button id="copy-button">Copy to clipboard</button>
-    <button id="clear-button">Clear Log</button>
+    <button id="clear-button">Clear log</button>
+    <button id="cancel-button">X</button>
 
     <script>
         function getCookie(cookieName, emptyValue) {
@@ -75,10 +92,19 @@
         // Convert the stringified array back to an actual array
         const log = JSON.parse(getCookie('button_log', '[]'));
 
+        // Load input values from cookie
+        for (const input of document.getElementsByClassName('input')) {
+            input.value = getCookie(input.name, input.value);
+        }
+
+        function toLogString(timestamp, direction, type) {
+            return `${timestamp}; ${type}; ${direction}`
+        }
+
         function handleButtonClick(direction, type) {
             const timestamp = new Date().toLocaleTimeString();
             log.push({ timestamp, direction, type });
-            console.log(`[${timestamp}] ${direction} (${type})`);
+            console.log(toLogString(timestamp, direction, type));
             updateLogDisplay();
             saveLogToCookie();
         }
@@ -88,14 +114,17 @@
             logContainer.innerHTML = '';
             log.forEach(entry => {
                 const logEntry = document.createElement('div');
-                logEntry.textContent = `[${entry.timestamp}] ${entry.direction} (${entry.type})\n`;
+                logEntry.textContent = toLogString(entry.timestamp, entry.direction, entry.type) + '\n';
                 logContainer.appendChild(logEntry);
             });
         }
 
+        function setCookie(name, value) {
+            document.cookie = `${name}=${value}; max-age=31536000; path=/`;
+        }
+
         function saveLogToCookie() {
-            const cookieValue = JSON.stringify(log);
-            document.cookie = `button_log=${cookieValue}; max-age=31536000; path=/`;
+            document.cookie = `button_log=${JSON.stringify(log)}; max-age=31536000; path=/`;
         }
 
         function copyLog() {
@@ -103,28 +132,38 @@
             navigator.clipboard.writeText(logContainer.textContent);
         }
 
-        function clearCookie() {
-            if (confirm('Are you sure you want to clear the log (cookies will be cleared)?')) {
+        function clearLog() {
+            if (confirm('Are you sure you want to clear the log?')) {
                 document.cookie = 'button_log=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
                 log.length = 0;
                 updateLogDisplay();
             }
         }
 
+        function cancelRecord() {
+            if (confirm('Are you sure you want to clear the last record?')) {
+                log.pop();
+                saveLogToCookie();
+                updateLogDisplay();
+            }
+        }
+
         for (const button of document.getElementsByClassName('button')) {
-            button.addEventListener(
-                'click',
+            button.addEventListener('click',
                 () => handleButtonClick(
                     button.textContent,
-                    button.parentElement.getElementsByTagName('span')[0].textContent
+                    button.parentElement.getElementsByTagName('input')[0].value
                     )
                 );
         }
 
-        document.getElementById('copy-button').addEventListener('click', copyLog);
-        document.getElementById('clear-button').addEventListener('click', clearCookie);
+        for (const input of document.getElementsByClassName('input')) {
+            input.addEventListener('change', () => setCookie(input.name, input.value));
+        }
 
-        updateLogDisplay();
+        document.getElementById('copy-button').addEventListener('click', copyLog);
+        document.getElementById('clear-button').addEventListener('click', clearLog);
+        document.getElementById('cancel-button').addEventListener('click', cancelRecord);
     </script>
 </body>
 </html>
