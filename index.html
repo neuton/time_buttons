@@ -107,7 +107,7 @@
         }
 
         function handleButtonClick(direction, type) {
-            const timestamp = new Date().toLocaleString();
+            const timestamp = new Date().toLocaleString('en-GB');
             log.push({ timestamp, direction, type });
             console.log(`${timestamp}, ${type}, ${direction}`);
             updateLogDisplay();
