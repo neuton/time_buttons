@@ -11,38 +11,45 @@
             align-items: center;
         }
         .button {
-            min-width: 64px;
+            min-width: 65px;
             font-size: 16px;
             padding: 10px 10px;
             margin: 10px;
         }
         .input {
-            width: 94px;
+            width: 120px;
             font-size: 16px;
             padding: 10px 10px;
             margin: 10px;
         }
         #copy-button {
+            min-width: 89px;
             font-size: 16px;
             padding: 10px 10px;
             margin: 10px;
         }
+        #download-button {
+            min-width: 89px;
+            font-size: 16px;
+            padding: 10px 10px;
+            margin: 5px;
+        }
         #clear-button {
             font-size: 16px;
-            margin: 5px;
+            margin: 10px;
             background-color: #f88;
         }
         #cancel-button {
             font-size: 16px;
-            margin: 5px;
+            margin: 3px;
             background-color: #f88;
         }
         #log-container {
             font-family: monospace, monospace;
-            font-size: 14px;
+            font-size: 12px;
             padding: 10px 10px;
             margin: 10px;
-            max-width: 265px;
+            max-width: 291px;
             border-style: solid;
         }
     </style>
@@ -74,8 +81,9 @@
         <button class="button">Down</button>
     </div>
     <div id="log-container"></div>
-    <button id="copy-button">Copy to clipboard</button>
-    <button id="clear-button">Clear log</button>
+    <button id="copy-button">&#x1f4cb; Copy</button>
+    <button id="download-button">&#x1f4be; CSV</button>
+    <button id="clear-button">Clear</button>
     <button id="cancel-button">X</button>
 
     <script>
@@ -98,14 +106,10 @@
             input.value = getCookie(input.name, input.value);
         }
 
-        function toLogString(timestamp, direction, type) {
-            return `${timestamp}; ${type}; ${direction}`
-        }
-
         function handleButtonClick(direction, type) {
-            const timestamp = new Date().toLocaleTimeString();
+            const timestamp = new Date().toLocaleString();
             log.push({ timestamp, direction, type });
-            console.log(toLogString(timestamp, direction, type));
+            console.log(`${timestamp}, ${type}, ${direction}`);
             updateLogDisplay();
             saveLogToCookie();
         }
@@ -113,10 +117,11 @@
         function updateLogDisplay() {
             const logContainer = document.getElementById('log-container');
             logContainer.innerHTML = '';
+            // logContainer.innerHTML = '<div>id; timestamp; type; button</div>';
             log.forEach((entry, index) => {
                 const logEntry = document.createElement('div');
-                logEntry.textContent = (`${index + 1}; `
-                    + toLogString(entry.timestamp, entry.direction, entry.type) + '\n');
+                const logText = `${index+1}, ${entry.timestamp}, ${entry.type}, ${entry.direction}\n`;
+                logEntry.textContent = logText;
                 logContainer.appendChild(logEntry);
             });
         }
@@ -132,6 +137,23 @@
         function copyLog() {
             const logContainer = document.getElementById('log-container');
             navigator.clipboard.writeText(logContainer.textContent);
+        }
+
+        function downloadTextFile(text, filename) {
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = window.URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadLog() {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = log[log.length - 1].timestamp.replace(',', '');
+            const filename = timestamp.replace('/', '_').replace(':', '_').replace(' ', '__') + '.csv'
+            downloadTextFile(logContainer.textContent, filename);
         }
 
         function clearLog() {
@@ -164,6 +186,7 @@
         }
 
         document.getElementById('copy-button').addEventListener('click', copyLog);
+        document.getElementById('download-button').addEventListener('click', downloadLog);
         document.getElementById('clear-button').addEventListener('click', clearLog);
         document.getElementById('cancel-button').addEventListener('click', cancelRecord);
 
