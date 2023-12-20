@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Press App</title>
+    <style>
+        /* Add your CSS styles here */
+        html {
+            font-size: 16px;
+            display: table;
+            margin: auto;
+        }
+        .button-row {
+            display: flex;
+            align-items: center;
+        }
+        .button {
+            font-size: 16px;
+            min-width: 65px;
+            padding: 10px;
+            margin: 10px;
+        }
+        .button:active {
+            background-color: buttonface;
+            animation-name: btn-flash;
+            animation-duration: .5s;
+        }
+        @keyframes btn-flash {
+            from { background-color: #f97; }
+            to { background-color: buttonface; }
+        }
+        .input {
+            font-size: 16px;
+            width: 120px;
+            padding: 10px;
+            margin: 10px;
+        }
+        .log-entry {
+            align-items: center;
+            margin: 11px 5px;
+        }
+        .time {
+            font-weight: bold;
+        }
+        .div-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .spacer {
+            flex: 1;
+        }
+        .log-text {
+            padding: 5px;
+        }
+        .precise-text {
+            background-color: #cfd;
+        }
+        .imprecise-text {
+            background-color: #fea;
+        }
+        .form-input input {
+            display: none;
+        }
+        .form-input .checkbox {
+            margin: 5px;
+            border: 2px solid black;
+            width: 16px;
+            height: 16px;
+            background-color: #fea;
+        }
+        .form-input input:checked + .checkbox:before {
+            content: '\2713';
+            padding: 0px 4px;
+            background-color: #cfd;
+            display: inline;
+        }
+        .edit-button {
+            min-width: 26px;
+            padding: 3px 3px;
+            margin: 3px 3px;
+            background-color: #eee;
+        }
+        .cancel-button {
+            min-width: 26px;
+            padding: 3px 3px;
+            margin: 3px 3px;
+            background-color: #f88;
+        }
+        #copy-button {
+            font-size: 16px;
+            min-width: 95px;
+            padding: 10px;
+            margin: 10px;
+        }
+        #download-button {
+            font-size: 16px;
+            min-width: 95px;
+            padding: 10px;
+            margin: 5px;
+        }
+        #clear-button {
+            font-size: 16px;
+            margin: 10px;
+            background-color: #f88;
+        }
+        #log-container {
+            font-family: monospace, monospace;
+            font-size: 13px;
+            margin: 10px;
+            padding: 5px;
+            max-width: 300px;
+            border-style: solid;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-row">
+        <input class="input" type="text" name="type_1" value="Type_1"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
+    </div>
+    <div class="button-row">
+        <input class="input" type="text" name="type_2" value="Type_2"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
+    </div>
+    <div class="button-row">
+        <input class="input" type="text" name="type_3" value="Type_3"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
+    </div>
+    <div class="button-row">
+        <input class="input" type="text" name="type_4" value="Type_4"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
+    </div>
+    <div class="button-row">
+        <input class="input" type="text" name="type_5" value="Type_5"></input>
+        <button class="button">Up</button>
+        <button class="button">Down</button>
+    </div>
+    <div id="log-container"></div>
+    <button id="copy-button">&#x1f4cb; Copy</button>
+    <button id="download-button">&#x1f4be; CSV</button>
+    <button id="clear-button">Clear log</button>
+
+    <script>
+        function getCookie(cookieName, emptyValue) {
+          const cookies = document.cookie.split(';');
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === cookieName) {
+              return value; // Cookie exists
+            }
+          }
+          return emptyValue; // Cookie does not exist
+        }
+
+        // Convert the stringified array back to an actual array
+        const log = JSON.parse(getCookie('button_log', '[]'));
+
+        // Load input values from cookie
+        for (const input of document.getElementsByClassName('input')) {
+            input.value = getCookie(input.name, input.value);
+        }
+
+        function handleButtonClick(direction, type) {
+            const timestamp = new Date().toLocaleString('en-GB');
+            const precision = 'precise';
+            log.push({ timestamp, direction, type, precision });
+            console.log(`${timestamp}, ${type}, ${direction}`);
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        function getAllTypes() {
+            let types = [];
+            for (const buttonRow of document.getElementsByClassName('button-row')) {
+                types.push(buttonRow.getElementsByTagName('input')[0].value);
+            }
+            return types;
+        }
+
+        function getAllDirections() {
+            let directions = [];
+            const buttonRow = document.getElementsByClassName('button-row')[0];
+            for (const button of buttonRow.getElementsByClassName('button')) {
+                directions.push(button.textContent);
+            }
+            return directions;
+        }
+
+        function newElement(elementName, text='', cls='') {
+            const element = document.createElement(elementName);
+            if (text) element.textContent = text;
+            if (cls) element.classList.add(cls);
+            return element;
+        }
+
+        function newSelect(options, value='', cls='') {
+            const select = newElement('select', '', cls);
+            for (const val of options) {
+                const option = document.createElement('option');
+                option.textContent = val;
+                select.appendChild(option);
+            }
+            if (value) select.value = value;
+            return select;
+        }
+
+        function updateLogDisplay() {
+            const logContainer = document.getElementById('log-container');
+            logContainer.innerHTML = '';
+            const types = getAllTypes();
+            const directions = getAllDirections();
+            log.forEach((entry, index) => {
+                const logEntry = newElement('div', '', 'log-entry');
+                const logTime = newElement('div', '', 'div-entry');
+                logTime.appendChild(newElement('span', index+1, 'log-text'));
+                logTime.appendChild(newElement('span', entry.timestamp.split(', ')[0], 'log-text'));
+                const timeSpan = newElement('span', entry.timestamp.split(', ')[1], 'log-text');
+                timeSpan.classList.add('time');
+                if (entry.precision != 'precise') timeSpan.classList.add('imprecise-text');
+                else timeSpan.classList.add('precise-text');
+                logTime.appendChild(timeSpan);
+                logTime.appendChild(newElement('span', '', 'spacer'))
+                const subtractTime = newElement('button', '-2', 'edit-button');
+                subtractTime.name = index;
+                subtractTime.addEventListener('click', (event) => changeTime(parseInt(event.currentTarget.name), -2));
+                logTime.appendChild(subtractTime);
+                const addTime = newElement('button', '+1', 'edit-button');
+                addTime.name = index;
+                addTime.addEventListener('click', (event) => changeTime(parseInt(event.currentTarget.name), +1));
+                logTime.appendChild(addTime);
+                cancelButton = newElement('button', 'X', 'edit-button');
+                cancelButton.name = index;
+                cancelButton.classList.add('cancel-button');
+                cancelButton.addEventListener('click', (event) => cancelRecord(parseInt(event.currentTarget.name)));
+                logTime.appendChild(cancelButton);
+                logEntry.appendChild(logTime);
+                const logType = newElement('div', '', 'div-entry');
+                const selectType = newSelect(types, entry.type, 'edit-button');
+                selectType.name = index;
+                selectType.addEventListener('click', (event) =>
+                    changeType(parseInt(event.currentTarget.name), event.currentTarget.value));
+                logType.appendChild(selectType);
+                const selectDirection = newSelect(directions, entry.direction, 'edit-button');
+                selectDirection.name = index;
+                selectDirection.addEventListener('click', (event) =>
+                    changeDirection(parseInt(event.currentTarget.name), event.currentTarget.value));
+                logType.appendChild(selectDirection);
+                logType.appendChild(newElement('span', '', 'spacer'))
+                logType.appendChild(newElement('span', 'precise:'));
+                const checkbox = newElement('label', '', 'form-input');
+                const checkboxInput = newElement('input');
+                checkboxInput.name = index;
+                checkboxInput.addEventListener('change', (event) =>
+                    changePrecision(parseInt(event.currentTarget.name), event.currentTarget.checked));
+                checkboxInput.type = 'checkbox';
+                checkboxInput.checked = (entry.precision == 'precise');
+                checkbox.appendChild(checkboxInput);
+                checkbox.appendChild(newElement('div', '', 'checkbox'));
+                logType.appendChild(checkbox);
+                logEntry.appendChild(logType);
+                logContainer.appendChild(logEntry);
+            });
+        }
+
+        function setCookie(name, value) {
+            document.cookie = `${name}=${value}; max-age=31536000; path=/`;
+        }
+
+        function changeInput(name, value) {
+            setCookie(name, value);
+            const allTypes = getAllTypes();
+            log.forEach((entry, index, array) => {
+                if (!allTypes.includes(entry.type)) array[index].type = value;
+            }, log);
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        function saveLogToCookie() {
+            document.cookie = `button_log=${JSON.stringify(log)}; max-age=31536000; path=/`;
+        }
+
+        function logToCSV() {
+            let csvString = '';
+            log.forEach((entry, index) => {
+                csvString += `${index+1}, ${entry.timestamp}, ${entry.type}, ${entry.direction}, ${entry.precision}\n`;
+            });
+            return csvString;
+        }
+
+        function copyLog() {
+            navigator.clipboard.writeText(logToCSV());
+        }
+
+        function downloadTextFile(text, filename) {
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = window.URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadLog() {
+            const timestamp = log[log.length - 1].timestamp.replace(',', '');
+            const filename = timestamp.replace('/', '_').replace(':', '_').replace(' ', '__') + '.csv'
+            downloadTextFile(logToCSV(), filename);
+        }
+
+        function clearLog() {
+            if (confirm('Are you sure you want to clear the log?')) {
+                document.cookie = 'button_log=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                log.length = 0;
+                updateLogDisplay();
+            }
+        }
+
+        function cancelRecord(index) {
+            if (confirm(`Are you sure you want to clear the record #${index + 1}?`)) {
+                log.splice(index, 1);
+                saveLogToCookie();
+                updateLogDisplay();
+            }
+        }
+
+        function changePrecision(index, value) {
+            if (value) log[index].precision = 'precise';
+            else log[index].precision = 'imprecise';
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        function changeTime(index, amount) {
+            var dateAndTime = log[index].timestamp.split(', ');
+            var date = new Date(dateAndTime[0].split('/').reverse().join('-') + ' ' + dateAndTime[1]);
+            date.setSeconds(date.getSeconds() + amount);
+            log[index].timestamp = date.toLocaleString('en-GB');
+            log[index].precision = 'imprecise';
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        function changeType(index, value) {
+            log[index].type = value;
+            console.log(log[index].type);
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        function changeDirection(index, value) {
+            log[index].direction = value;
+            console.log(log[index].direction);
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
+        for (const button of document.getElementsByClassName('button')) {
+            button.addEventListener('click',
+                () => handleButtonClick(
+                    button.textContent,
+                    button.parentElement.getElementsByTagName('input')[0].value
+                    )
+                );
+        }
+
+        for (const input of document.getElementsByClassName('input')) {
+            input.addEventListener('change', () => changeInput(input.name, input.value));
+        }
+
+        document.getElementById('copy-button').addEventListener('click', copyLog);
+        document.getElementById('download-button').addEventListener('click', downloadLog);
+        document.getElementById('clear-button').addEventListener('click', clearLog);
+
+        updateLogDisplay();
+    </script>
+</body>
+</html>
