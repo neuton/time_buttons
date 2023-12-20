@@ -243,12 +243,12 @@
                 const logType = newElement('div', '', 'div-entry');
                 const selectType = newSelect(types, entry.type, 'edit-button');
                 selectType.name = index;
-                selectType.addEventListener('click', (event) =>
+                selectType.addEventListener('change', (event) =>
                     changeType(parseInt(event.currentTarget.name), event.currentTarget.value));
                 logType.appendChild(selectType);
                 const selectDirection = newSelect(directions, entry.direction, 'edit-button');
                 selectDirection.name = index;
-                selectDirection.addEventListener('click', (event) =>
+                selectDirection.addEventListener('change', (event) =>
                     changeDirection(parseInt(event.currentTarget.name), event.currentTarget.value));
                 logType.appendChild(selectDirection);
                 logType.appendChild(newElement('span', '', 'spacer'))
