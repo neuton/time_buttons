@@ -39,7 +39,7 @@
             animation-duration: .5s;
         }
         @keyframes btn-flash {
-            from { background-color: #f97; }
+            from { background-color: #fa8; }
             to { background-color: buttonface; }
         }
         .input {
@@ -51,8 +51,14 @@
         .log-entry {
             align-items: center;
             margin: 11px 5px;
+            background-color: #fff;
+            transition: background-color 1s;
+            will-change: background-color;
         }
-        .time {
+        .log-entry.faded-out {
+            background-color: #fa8;
+        }
+        .bold {
             font-weight: bold;
         }
         .div-entry {
@@ -186,7 +192,7 @@
             const precision = 'precise';
             log.push({ timestamp, direction, type, precision });
             console.log(`${timestamp}, ${type}, ${direction}`);
-            updateLogDisplay();
+            updateLogDisplay(animate_last=true);
             saveLogToCookie();
         }
 
@@ -232,18 +238,21 @@
             return dateAndTime
         }
 
-        function updateLogDisplay() {
+        function updateLogDisplay(animate_last=false) {
             const logContainer = document.getElementById('log-container');
             logContainer.innerHTML = '';
             const types = getAllTypes();
             const directions = getAllDirections();
-            log.forEach((entry, index) => {
+            for (let index = log.length - 1; index >= 0; index--) {
+                const entry = log[index];
                 const logEntry = newElement('div', '', 'log-entry');
                 const logTime = newElement('div', '', 'div-entry');
-                logTime.appendChild(newElement('span', index+1, 'log-text'));
+                const number = newElement('span', index+1, 'log-text');
+                number.classList.add('bold');
+                logTime.appendChild(number);
                 logTime.appendChild(newElement('span', timestampSplit(entry.timestamp)[0], 'log-text'));
                 const timeSpan = newElement('span', timestampSplit(entry.timestamp)[1], 'log-text');
-                timeSpan.classList.add('time');
+                timeSpan.classList.add('bold');
                 if (entry.precision != 'precise') timeSpan.classList.add('imprecise-text');
                 else timeSpan.classList.add('precise-text');
                 logTime.appendChild(timeSpan);
@@ -287,7 +296,11 @@
                 logType.appendChild(checkbox);
                 logEntry.appendChild(logType);
                 logContainer.appendChild(logEntry);
-            });
+                if (animate_last && (index == log.length - 1)) {
+                    logEntry.classList.add('faded-out');
+                    requestAnimationFrame(() => {logEntry.classList.remove("faded-out")});
+                }
+            }
         }
 
         function setCookie(name, value) {
