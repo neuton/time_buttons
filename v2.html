@@ -210,6 +210,13 @@
             return select;
         }
 
+        function timestampSplit(timestamp) {
+            var dateAndTime = timestamp.split(',');
+            dateAndTime[0] = dateAndTime[0].trim();
+            dateAndTime[1] = dateAndTime[1].trim();
+            return dateAndTime
+        }
+
         function updateLogDisplay() {
             const logContainer = document.getElementById('log-container');
             logContainer.innerHTML = '';
@@ -219,8 +226,8 @@
                 const logEntry = newElement('div', '', 'log-entry');
                 const logTime = newElement('div', '', 'div-entry');
                 logTime.appendChild(newElement('span', index+1, 'log-text'));
-                logTime.appendChild(newElement('span', entry.timestamp.split(', ')[0], 'log-text'));
-                const timeSpan = newElement('span', entry.timestamp.split(', ')[1], 'log-text');
+                logTime.appendChild(newElement('span', timestampSplit(entry.timestamp)[0], 'log-text'));
+                const timeSpan = newElement('span', timestampSplit(entry.timestamp)[1], 'log-text');
                 timeSpan.classList.add('time');
                 if (entry.precision != 'precise') timeSpan.classList.add('imprecise-text');
                 else timeSpan.classList.add('precise-text');
@@ -338,7 +345,7 @@
         }
 
         function changeTime(index, amount) {
-            var dateAndTime = log[index].timestamp.split(', ');
+            var dateAndTime = timestampSplit(log[index].timestamp);
             var date = new Date(dateAndTime[0].split('/').reverse().join('-') + ' ' + dateAndTime[1]);
             date.setSeconds(date.getSeconds() + amount);
             log[index].timestamp = date.toLocaleString('en-GB');
