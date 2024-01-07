@@ -200,8 +200,26 @@
                 );
         }
 
+        function getAllTypes() {
+            let types = [];
+            for (const buttonRow of document.getElementsByClassName('button-row')) {
+                types.push(buttonRow.getElementsByTagName('input')[0].value);
+            }
+            return types;
+        }
+
+        function changeInput(name, value) {
+            setCookie(name, value);
+            const allTypes = getAllTypes();
+            log.forEach((entry, index, array) => {
+                if (!allTypes.includes(entry.type)) array[index].type = value;
+            }, log);
+            updateLogDisplay();
+            saveLogToCookie();
+        }
+
         for (const input of document.getElementsByClassName('input')) {
-            input.addEventListener('change', () => setCookie(input.name, input.value));
+            input.addEventListener('change', () => changeInput(input.name, input.value));
         }
 
         document.getElementById('copy-button').addEventListener('click', copyLog);
