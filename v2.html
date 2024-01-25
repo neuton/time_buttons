@@ -168,23 +168,17 @@
     <button id="clear-button">Clear log</button>
 
     <script>
-        function getCookie(cookieName, emptyValue) {
-          const cookies = document.cookie.split(';');
-          for (const cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === cookieName) {
-              return value; // Cookie exists
-            }
-          }
-          return emptyValue; // Cookie does not exist
+        function getLocalStorage(name, emptyValue) {
+          const value = localStorage.getItem(name);
+          return value !== null ? value : emptyValue
         }
 
         // Convert the stringified array back to an actual array
-        const log = JSON.parse(getCookie('button_log', '[]'));
+        const log = JSON.parse(getLocalStorage('button_log', '[]'));
 
-        // Load input values from cookie
+        // Load input values from localStorage
         for (const input of document.getElementsByClassName('input')) {
-            input.value = getCookie(input.name, input.value);
+            input.value = getLocalStorage(input.name, input.value);
         }
 
         function handleButtonClick(direction, type) {
@@ -193,7 +187,7 @@
             log.push({ timestamp, direction, type, precision });
             console.log(`${timestamp}, ${type}, ${direction}`);
             updateLogDisplay(animate_last=true);
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         function getAllTypes() {
@@ -303,22 +297,22 @@
             }
         }
 
-        function setCookie(name, value) {
-            document.cookie = `${name}=${value}; max-age=31536000; path=/`;
+        function setLocalStorage(name, value) {
+            localStorage.setItem(name, value);
         }
 
         function changeInput(name, value) {
-            setCookie(name, value);
+            setLocalStorage(name, value);
             const allTypes = getAllTypes();
             log.forEach((entry, index, array) => {
                 if (!allTypes.includes(entry.type)) array[index].type = value;
             }, log);
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
-        function saveLogToCookie() {
-            document.cookie = `button_log=${JSON.stringify(log)}; max-age=31536000; path=/`;
+        function saveLogToLocalStorage() {
+            localStorage.setItem('button_log', JSON.stringify(log));
         }
 
         function logToCSV() {
@@ -351,7 +345,7 @@
 
         function clearLog() {
             if (confirm('Are you sure you want to clear the log?')) {
-                document.cookie = 'button_log=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                localStorage.removeItem('button_log');
                 log.length = 0;
                 updateLogDisplay();
             }
@@ -360,7 +354,7 @@
         function cancelRecord(index) {
             if (confirm(`Are you sure you want to clear the record #${index + 1}?`)) {
                 log.splice(index, 1);
-                saveLogToCookie();
+                saveLogToLocalStorage();
                 updateLogDisplay();
             }
         }
@@ -369,7 +363,7 @@
             if (value) log[index].precision = 'precise';
             else log[index].precision = 'imprecise';
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         function changeTime(index, amount) {
@@ -379,21 +373,21 @@
             log[index].timestamp = date.toLocaleString('en-GB');
             log[index].precision = 'imprecise';
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         function changeType(index, value) {
             log[index].type = value;
             console.log(log[index].type);
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         function changeDirection(index, value) {
             log[index].direction = value;
             console.log(log[index].direction);
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         for (const button of document.getElementsByClassName('button')) {
