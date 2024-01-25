@@ -106,23 +106,17 @@
     <button id="cancel-button">X</button>
 
     <script>
-        function getCookie(cookieName, emptyValue) {
-          const cookies = document.cookie.split(';');
-          for (const cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === cookieName) {
-              return value; // Cookie exists
-            }
-          }
-          return emptyValue; // Cookie does not exist
+        function getLocalStorage(name, emptyValue) {
+          const value = localStorage.getItem(name);
+          return value !== null ? value : emptyValue
         }
 
         // Convert the stringified array back to an actual array
-        const log = JSON.parse(getCookie('button_log', '[]'));
+        const log = JSON.parse(getLocalStorage('button_log', '[]'));
 
-        // Load input values from cookie
+        // Load input values from localStorage
         for (const input of document.getElementsByClassName('input')) {
-            input.value = getCookie(input.name, input.value);
+            input.value = getLocalStorage(input.name, input.value);
         }
 
         function handleButtonClick(direction, type) {
@@ -130,7 +124,7 @@
             log.push({ timestamp, direction, type });
             console.log(`${timestamp}, ${type}, ${direction}`);
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         function updateLogDisplay() {
@@ -145,12 +139,12 @@
             });
         }
 
-        function setCookie(name, value) {
-            document.cookie = `${name}=${value}; max-age=31536000; path=/`;
+        function setLocalStorage(name, value) {
+            localStorage.setItem(name, value);
         }
 
-        function saveLogToCookie() {
-            document.cookie = `button_log=${JSON.stringify(log)}; max-age=31536000; path=/`;
+        function saveLogToLocalStorage() {
+            localStorage.setItem('button_log', JSON.stringify(log));
         }
 
         function copyLog() {
@@ -177,7 +171,7 @@
 
         function clearLog() {
             if (confirm('Are you sure you want to clear the log?')) {
-                document.cookie = 'button_log=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                localStorage.removeItem('button_log');
                 log.length = 0;
                 updateLogDisplay();
             }
@@ -186,7 +180,7 @@
         function cancelRecord() {
             if (confirm('Are you sure you want to clear the last record?')) {
                 log.pop();
-                saveLogToCookie();
+                saveLogToLocalStorage();
                 updateLogDisplay();
             }
         }
@@ -209,13 +203,13 @@
         }
 
         function changeInput(name, value) {
-            setCookie(name, value);
+            setLocalStorage(name, value);
             const allTypes = getAllTypes();
             log.forEach((entry, index, array) => {
                 if (!allTypes.includes(entry.type)) array[index].type = value;
             }, log);
             updateLogDisplay();
-            saveLogToCookie();
+            saveLogToLocalStorage();
         }
 
         for (const input of document.getElementsByClassName('input')) {
